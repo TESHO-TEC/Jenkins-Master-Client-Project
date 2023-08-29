@@ -1,50 +1,48 @@
 pipeline {
   agent {
-    label 'Maven-Build-Env' // Use the Maven slave node for this pipeline
+    label 'Gradle-Build-Env' // Use the Gradle slave node for this pipeline
   }
   stages {
     stage('Validate Project') {
         steps {
-            sh 'mvn validate'
+            sh 'gradle check'
         }
     }
-    stage('Unit Test'){
+    stage('Gradle Project Tasks'){
         steps {
-            sh 'mvn test'
+            sh 'gradle tasks'
         }
     }
-    stage('Integration Test'){
+    stage('Unit & Integration Test'){
         steps {
-            sh 'mvn verify -DskipUnitTests'
+            sh 'gradle test'
         }
     }
-    stage('App Packaging'){
+    stage('Package Application'){
         steps {
-            sh 'mvn package'
+            sh 'gradle build'
         }
     }
     stage ('Checkstyle Code Analysis'){
         steps {
-            sh 'mvn checkstyle:checkstyle'
+            sh 'gradle checkstyleTest'
         }
     }
     stage('SonarQube Inspection') {
         steps {
-            sh  """mvn sonar:sonar \
-                   -Dsonar.projectKey=Maven-JavaWebApp \
-                   -Dsonar.host.url=http://172.31.5.173:9000 \
-                   -Dsonar.login=ed7f1ae74cf8b693cadbd47043d4b9ed5ef50913"""
+            sh 'gradle sonarqube'
         }
     }
     stage("Upload Artifact To Nexus"){
         steps{
-             sh 'mvn deploy'
+            sh 'gradle publish'
         }
         post {
             success {
-              echo 'Successfully Uploaded Artifact to Nexus Artifactory'
+                echo 'Successfully Uploaded Artifact to Nexus Artifactory'
         }
       }
     }
   }
 }
+
